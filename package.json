@@ -5,12 +5,18 @@
   "dependencies": {
     "react": "^16.6.3",
     "react-dom": "^16.6.3",
-    "react-scripts": "2.1.1"
+    "react-scripts": "2.1.1",
+    "lite-server": "^2.3.0"
+  },
+  "main": "truffle.js",
+  "directories": {
+    "test": "test"
   },
   "scripts": {
+    "dev": "lite-server",
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
+    "test": "echo \"Error: no test specified\" && exit 1",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
