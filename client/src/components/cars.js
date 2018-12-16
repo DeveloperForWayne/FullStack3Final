@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import RentContract from "../contracts/Rent.json";
+import ReturnContract from "../contracts/Return.json";
 import getWeb3 from "../utils/getWeb3";
 import truffleContract from "truffle-contract";
 
@@ -12,10 +13,12 @@ class cars extends Component {
             cars: [],
             web3: null,
             accounts: null,
-            contract: null
+            rentContract: null,
+            returnContract: null
         };
 
         this.handleRent = this.handleRent.bind(this);
+        this.handleReturn = this.handleReturn.bind(this);
     }
 
     componentDidMount = async () => {
@@ -31,13 +34,18 @@ class cars extends Component {
             const accounts = await web3.eth.getAccounts();
 
             // Get the contract instance.
-            const Contract = truffleContract(RentContract);
-            Contract.setProvider(web3.currentProvider);
-            const instance = await Contract.deployed();
+            const ContractRent = truffleContract(RentContract);
+            const ContractReturn = truffleContract(ReturnContract);
+
+            ContractRent.setProvider(web3.currentProvider);
+            ContractReturn.setProvider(web3.currentProvider);
+            
+            const instanceRent = await ContractRent.deployed();
+            const instanceReturn = await ContractReturn.deployed();
 
             // Set web3, accounts, and contract to the state, and then proceed with an
             // example of interacting with the contract's methods.
-            this.setState({ web3, accounts, contract: instance }, this.markRented);
+            this.setState({ web3, accounts, rentContract: instanceRent, returnContract: instanceReturn }, this.markRented);
 
         } catch (error) {
             // Catch any errors for any of the above operations.
@@ -49,10 +57,10 @@ class cars extends Component {
     };
 
     markRented = async () => {
-        const { cars, accounts, contract } = this.state;
+        const { cars, rentContract } = this.state;
 
         // Get the value from the contract to prove it worked.
-        const rentals = await contract.getRentals();
+        const rentals = await rentContract.getRentals();
 
         for (let i = 0; i < rentals.length; i++) {
             if (rentals[i] !== '0x0000000000000000000000000000000000000000') {
@@ -66,11 +74,21 @@ class cars extends Component {
     handleRent = async (id, e) => {
         e.preventDefault();
 
-        const { accounts, contract } = this.state;
+        const { accounts, rentContract } = this.state;
 
         var carId = parseInt(id);
 
-        await contract.rent(carId, { from: accounts[0] })
+        await rentContract.rent(carId, { from: accounts[0] })
+    }
+
+    handleReturn = async (id, e) => {
+        e.preventDefault();
+
+        const { accounts, returnContract } = this.state;
+
+        var carId = parseInt(id);
+
+        await returnContract.returnCar(carId, { from: accounts[0] })
     }
 
     render() {
@@ -107,6 +125,7 @@ class cars extends Component {
                                             <h5>{car.name}</h5>
                                         </div>
                                         <button className="ad-btn" type="button" disabled={car.disabled} onClick={(e) => this.handleRent(car.id, e)}>Book</button>
+                                        <button className="ad-btn" type="button" onClick={(e) => this.handleReturn(car.id, e)}>Return</button>
                                     </div>
                                 </div>
                             </form>
