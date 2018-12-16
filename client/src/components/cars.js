@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import AdoptionContract from "../contracts/Adoption.json";
+import RentContract from "../contracts/Rent.json";
 import getWeb3 from "../utils/getWeb3";
 import truffleContract from "truffle-contract";
 
@@ -15,7 +15,7 @@ class cars extends Component {
             contract: null
         };
 
-        this.handleAdopt = this.handleAdopt.bind(this);
+        this.handleRent = this.handleRent.bind(this);
     }
 
     componentDidMount = async () => {
@@ -31,13 +31,13 @@ class cars extends Component {
             const accounts = await web3.eth.getAccounts();
 
             // Get the contract instance.
-            const Contract = truffleContract(AdoptionContract);
+            const Contract = truffleContract(RentContract);
             Contract.setProvider(web3.currentProvider);
             const instance = await Contract.deployed();
 
             // Set web3, accounts, and contract to the state, and then proceed with an
             // example of interacting with the contract's methods.
-            this.setState({ web3, accounts, contract: instance }, this.markAdopted);
+            this.setState({ web3, accounts, contract: instance }, this.markRented);
 
         } catch (error) {
             // Catch any errors for any of the above operations.
@@ -48,29 +48,29 @@ class cars extends Component {
         }
     };
 
-    markAdopted = async () => {
+    markRented = async () => {
         const { cars, accounts, contract } = this.state;
 
         // Get the value from the contract to prove it worked.
-        const adopters = await contract.getAdopters();
-console.log(adopters)
-        for (let i = 0; i < adopters.length; i++) {
-            if (adopters[i] !== '0x0000000000000000000000000000000000000000') {
+        const rentals = await contract.getRentals();
+
+        for (let i = 0; i < rentals.length; i++) {
+            if (rentals[i] !== '0x0000000000000000000000000000000000000000') {
                 cars[i].disabled = true;
             }
         }
-        console.log(cars)
+
         this.setState({cars: cars});
     }
 
-    handleAdopt = async (id, e) => {
+    handleRent = async (id, e) => {
         e.preventDefault();
 
         const { accounts, contract } = this.state;
 
         var carId = parseInt(id);
 
-        await contract.adopt(carId, { from: accounts[0] })
+        await contract.rent(carId, { from: accounts[0] })
     }
 
     render() {
@@ -106,7 +106,7 @@ console.log(adopters)
                                         <div className="ad-title m-auto">
                                             <h5>{car.name}</h5>
                                         </div>
-                                        <button className="ad-btn" type="button" disabled={car.disabled} onClick={(e) => this.handleAdopt(car.id, e)}>Book</button>
+                                        <button className="ad-btn" type="button" disabled={car.disabled} onClick={(e) => this.handleRent(car.id, e)}>Book</button>
                                     </div>
                                 </div>
                             </form>
