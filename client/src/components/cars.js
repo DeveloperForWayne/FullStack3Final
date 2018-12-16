@@ -20,6 +20,10 @@ class cars extends Component {
 
     componentDidMount = async () => {
         try {
+            var data = require('../cars.json');
+
+            this.setState({cars: data});
+
             // Get network provider and web3 instance.
             const web3 = await getWeb3();
 
@@ -44,41 +48,28 @@ class cars extends Component {
         }
     };
 
-    init() {
-        fetch('../cars.json')
-            .then(response => response.json())
-            .then(data => {
-                this.setState({cars: data})
-        }).then(() => {
-            this.bindEvents();
-        })
-    }
-
-    bindEvents() {
-        //$(document).on('click', '.ad-btn', this.handleAdopt);
-    }
-
     markAdopted = async () => {
-        const { accounts, contract } = this.state;
+        const { cars, accounts, contract } = this.state;
 
         // Get the value from the contract to prove it worked.
         const adopters = await contract.getAdopters();
-
+console.log(adopters)
         for (let i = 0; i < adopters.length; i++) {
             if (adopters[i] !== '0x0000000000000000000000000000000000000000') {
-                //$('#carTemplate').eq(i).find('button').text('Success').attr('disabled', true);
+                cars[i].disabled = true;
             }
         }
+        console.log(cars)
+        this.setState({cars: cars});
     }
 
-    handleAdopt = async (event) => {
-        event.preventDefault();
+    handleAdopt = async (id, e) => {
+        e.preventDefault();
 
         const { accounts, contract } = this.state;
 
-        var carId = parseInt(event.target.data('id'));
+        var carId = parseInt(id);
 
-        // Stores a given value, 5 by default.
         await contract.adopt(carId, { from: accounts[0] })
     }
 
@@ -96,7 +87,7 @@ class cars extends Component {
                 <div className="row">
                 </div>
 
-                <div className="row">
+                <div className="row" id="carTemplate">
                     {this.state.cars.map(car =>
                         <div className="col-md-4">
                             <form>
@@ -115,7 +106,7 @@ class cars extends Component {
                                         <div className="ad-title m-auto">
                                             <h5>{car.name}</h5>
                                         </div>
-                                        <button className="ad-btn" type="button" data-id={car.id} onClick={this.handleAdopt}>Book</button>
+                                        <button className="ad-btn" type="button" disabled={car.disabled} onClick={(e) => this.handleAdopt(car.id, e)}>Book</button>
                                     </div>
                                 </div>
                             </form>
